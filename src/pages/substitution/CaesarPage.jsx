@@ -1,11 +1,14 @@
 // src/pages/substitution/CaesarPage.jsx
 
 import { useState } from 'react';
-import { caesarEncrypt, caesarDecrypt, getCaesarVisualization } from '../../utils/algorithms';
-import usePerformance from '../../hooks/usePerformance';
-import StatisticsPanel from '../../components/organisms/StatisticsPanel';
-import { FrequencyChart } from '../../components/organisms/PerformanceChart';
-import { Copy, RotateCcw, TrendingUp } from 'lucide-react';
+import { Copy, RotateCcw, Lock, Eye, EyeOff } from 'lucide-react';
+
+// Import algorithms
+import {
+  caesarEncrypt,
+  caesarDecrypt,
+  getCaesarVisualization
+} from '../../utils/algorithms/index.js';
 
 const CaesarPage = () => {
   const [inputText, setInputText] = useState('');
@@ -13,27 +16,17 @@ const CaesarPage = () => {
   const [mode, setMode] = useState('encrypt');
   const [result, setResult] = useState('');
   const [visualization, setVisualization] = useState(null);
-  const [showStats, setShowStats] = useState(false);
-
-  const {
-    metrics,
-    frequencyData,
-    entropyData,
-    startTracking,
-    stopTracking,
-    exportData,
-  } = usePerformance();
+  const [error, setError] = useState('');
 
   const handleProcess = () => {
-    if (!inputText) {
-      alert('Please enter text to process');
+    setError('');
+    
+    if (!inputText.trim()) {
+      setError('Please enter text to process');
       return;
     }
 
     try {
-      // Start performance tracking
-      startTracking();
-
       let output;
       if (mode === 'encrypt') {
         output = caesarEncrypt(inputText, shift);
@@ -43,20 +36,18 @@ const CaesarPage = () => {
       
       setResult(output);
       setVisualization(getCaesarVisualization(inputText, shift));
-
-      // Stop tracking and analyze
-      stopTracking('Caesar Cipher', inputText, output);
-      setShowStats(true);
-    } catch (error) {
-      alert('Error: ' + error.message);
+    } catch (err) {
+      setError(err.message);
+      console.error('Caesar cipher error:', err);
     }
   };
 
   const handleReset = () => {
     setInputText('');
+    setShift(3);
     setResult('');
     setVisualization(null);
-    setShowStats(false);
+    setError('');
   };
 
   const handleCopy = async () => {
@@ -68,34 +59,35 @@ const CaesarPage = () => {
     }
   };
 
-  const handleExport = (format) => {
-    const data = exportData(format);
-    const blob = new Blob([data], { 
-      type: format === 'json' ? 'application/json' : 'text/csv' 
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `caesar-stats.${format}`;
-    a.click();
-  };
-
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
       <div className="max-w-7xl mx-auto">
+        
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
-            Caesar Cipher
-          </h1>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Lock className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
+              Caesar Cipher
+            </h1>
+          </div>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Classic shift cipher - one of the earliest known encryption techniques
+            Simple shift cipher - one of the earliest known encryption techniques
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Info Note */}
+        <div className="mb-6 p-4 bg-blue-100 dark:bg-blue-900 rounded-lg border border-blue-300 dark:border-blue-700">
+          <p className="text-sm text-blue-900 dark:text-blue-100">
+            <strong>Note:</strong> The Caesar cipher shifts each letter by a fixed number of positions in the alphabet. 
+            It's named after Julius Caesar, who used it in his private correspondence.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
           {/* Input Panel */}
-          <div className="card animate-slide-up">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
               Input
             </h2>
@@ -110,8 +102,8 @@ const CaesarPage = () => {
                   onClick={() => setMode('encrypt')}
                   className={`flex-1 py-2 rounded-lg font-medium transition-all ${
                     mode === 'encrypt'
-                      ? 'bg-primary-600 text-white shadow-lg scale-105'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                      ? 'bg-indigo-600 text-white shadow-lg'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-indigo-900 hover:text-indigo-700 dark:hover:text-indigo-300'
                   }`}
                 >
                   Encrypt
@@ -120,8 +112,8 @@ const CaesarPage = () => {
                   onClick={() => setMode('decrypt')}
                   className={`flex-1 py-2 rounded-lg font-medium transition-all ${
                     mode === 'decrypt'
-                      ? 'bg-primary-600 text-white shadow-lg scale-105'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                      ? 'bg-indigo-600 text-white shadow-lg'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-indigo-900 hover:text-indigo-700 dark:hover:text-indigo-300'
                   }`}
                 >
                   Decrypt
@@ -137,183 +129,294 @@ const CaesarPage = () => {
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Enter your text here..."
-                className="textarea"
-                rows={6}
+                placeholder={mode === 'encrypt' ? 'Enter text to encrypt...' : 'Enter text to decrypt...'}
+                className="w-full h-32 px-4 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {inputText.length} characters
+                {inputText.replace(/[^A-Z]/gi, '').length} characters (letters only)
               </p>
             </div>
 
             {/* Shift Input */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Shift Value
-                </label>
-                <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                  {shift}
-                </span>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Shift Value (0-25)
+              </label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min="0"
+                  max="25"
+                  value={shift}
+                  onChange={(e) => setShift(parseInt(e.target.value))}
+                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  max="25"
+                  value={shift}
+                  onChange={(e) => setShift(Math.max(0, Math.min(25, parseInt(e.target.value) || 0)))}
+                  className="w-20 px-3 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center font-bold focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition"
+                />
               </div>
-              <input
-                type="range"
-                min="0"
-                max="25"
-                value={shift}
-                onChange={(e) => setShift(Number(e.target.value))}
-                className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary-600"
-              />
-              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                <span>0</span>
-                <span className="font-medium text-primary-600">13 (ROT13)</span>
-                <span>25</span>
-              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Current shift: {shift} positions
+              </p>
             </div>
 
-            {/* Action Buttons */}
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            {/* Buttons */}
             <div className="flex gap-3">
               <button
                 onClick={handleProcess}
-                className="flex-1 btn btn-primary flex items-center justify-center gap-2"
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition shadow-lg hover:shadow-xl"
               >
-                <TrendingUp size={18} />
-                Process
+                {mode === 'encrypt' ? 'Encrypt' : 'Decrypt'}
               </button>
               <button
                 onClick={handleReset}
-                className="px-6 btn bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-400 dark:hover:bg-gray-600 flex items-center gap-2"
+                className="px-4 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition"
               >
-                <RotateCcw size={18} />
-                Reset
+                <RotateCcw className="w-5 h-5" />
               </button>
             </div>
           </div>
 
           {/* Output Panel */}
-          <div className="card animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
               Output
             </h2>
 
-            {result ? (
-              <>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Result
-                  </label>
-                  <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-200 dark:border-green-800 rounded-lg">
-                    <p className="text-lg font-mono text-gray-800 dark:text-gray-100 break-all leading-relaxed">
-                      {result}
-                    </p>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {result.length} characters
-                  </p>
-                </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {mode === 'encrypt' ? 'Ciphertext' : 'Plaintext'}
+              </label>
+              <div className="relative">
+                <textarea
+                  value={result}
+                  readOnly
+                  placeholder="Result will appear here..."
+                  className="w-full h-32 px-4 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
+                />
+                {result && (
+                  <button
+                    onClick={handleCopy}
+                    className="absolute top-2 right-2 p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition"
+                    title="Copy to clipboard"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
 
-                <button
-                  onClick={handleCopy}
-                  className="w-full btn btn-success flex items-center justify-center gap-2"
-                >
-                  <Copy size={18} />
-                  Copy to Clipboard
-                </button>
-              </>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 py-20">
-                <p>Results will appear here...</p>
+            {/* Statistics */}
+            {result && (
+              <div className="space-y-3 p-4 bg-indigo-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                  Statistics
+                </h3>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Input Length:</span>
+                  <span className="font-mono text-gray-900 dark:text-white">
+                    {inputText.replace(/[^A-Z]/gi, '').length} chars
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Output Length:</span>
+                  <span className="font-mono text-gray-900 dark:text-white">
+                    {result.length} chars
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Shift Value:</span>
+                  <span className="font-mono text-gray-900 dark:text-white">
+                    {shift}
+                  </span>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Visualization Panel */}
-        {visualization && (
-          <div className="card mb-6 animate-scale-in">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
-              Alphabet Shift Visualization
-            </h2>
-
-            {/* Alphabet Mapping */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Original Alphabet
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {visualization.originalAlphabet.map((char, idx) => (
-                    <span
-                      key={idx}
-                      className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg font-mono font-bold text-gray-700 dark:text-gray-300 transition-transform hover:scale-110"
-                    >
-                      {char}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Shifted Alphabet (K = {visualization.shift})
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {visualization.shiftedAlphabet.map((char, idx) => (
-                    <span
-                      key={idx}
-                      className="w-10 h-10 flex items-center justify-center bg-primary-100 dark:bg-primary-900 rounded-lg font-mono font-bold text-primary-700 dark:text-primary-300 transition-transform hover:scale-110"
-                    >
-                      {char}
-                    </span>
-                  ))}
-                </div>
+              {/* Alphabet Visualization */}
+      {visualization && (
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">
+            Alphabet Shift Visualization
+          </h2>
+          
+          <div className="overflow-x-auto">
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Original Alphabet:
+              </h3>
+              <div className="flex gap-1 font-mono text-sm">
+                {visualization.originalAlphabet.map((char, idx) => (
+                  <div key={idx} className="w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-bold rounded">
+                    {char}
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Character Mapping */}
-            {visualization.mapping.length > 0 && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Character Transformation Examples
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {visualization.mapping.slice(0, 15).map((map, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-lg border border-primary-200 dark:border-primary-800 transition-transform hover:scale-105"
-                    >
-                      <span className="font-mono font-bold text-lg text-gray-700 dark:text-gray-300">
-                        {map.original}
-                      </span>
-                      <span className="text-gray-400">→</span>
-                      <span className="font-mono font-bold text-lg text-primary-600 dark:text-primary-400">
-                        {map.encrypted}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Shifted Alphabet (shift={shift}):
+              </h3>
+              <div className="flex gap-1 font-mono text-sm">
+                {visualization.shiftedAlphabet.map((char, idx) => (
+                  <div key={idx} className="w-8 h-8 flex items-center justify-center bg-indigo-500 dark:bg-indigo-600 text-white font-bold rounded">
+                    {char}
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
           </div>
-        )}
 
-        {/* Statistics Panel */}
-        {showStats && (
-          <div className="animate-fade-in">
-            <StatisticsPanel
-              metrics={metrics}
-              frequencyData={frequencyData}
-              entropyData={entropyData}
-              onExport={handleExport}
-            />
-
-            {/* Frequency Chart */}
-            {frequencyData && (
-              <div className="mt-6">
-                <FrequencyChart frequencyData={frequencyData.ciphertext} />
-              </div>
-            )}
+          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              <strong>Shift Value:</strong> {shift}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              <strong>How it works:</strong> Each letter is shifted by {shift} positions in the alphabet. 
+              For example, A becomes {visualization.shiftedAlphabet[0]}, B becomes {visualization.shiftedAlphabet[1]}, and so on.
+            </p>
           </div>
-        )}
+        </div>
+      )}
+        {/* About Caesar Cipher */}
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-6">
+            About Caesar Cipher
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* How it Works */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-3">
+                How it Works
+              </h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li className="flex items-start">
+                  <span className="text-indigo-600 dark:text-indigo-400 mr-2">•</span>
+                  <span>Each letter shifted by fixed number of positions</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-indigo-600 dark:text-indigo-400 mr-2">•</span>
+                  <span>Shift value ranges from 0 to 25</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-indigo-600 dark:text-indigo-400 mr-2">•</span>
+                  <span>Wraps around at the end of alphabet</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-indigo-600 dark:text-indigo-400 mr-2">•</span>
+                  <span>Decryption uses negative shift</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Encryption Rules */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-3">
+                Key Features
+              </h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li className="flex items-start">
+                  <span className="font-semibold text-indigo-600 dark:text-indigo-400 mr-2">Simple:</span>
+                  <span>Easy to understand and implement</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-semibold text-indigo-600 dark:text-indigo-400 mr-2">Fast:</span>
+                  <span>Quick encryption and decryption</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-semibold text-indigo-600 dark:text-indigo-400 mr-2">Historic:</span>
+                  <span>Used by Julius Caesar</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="font-semibold text-indigo-600 dark:text-indigo-400 mr-2">Monoalphabetic:</span>
+                  <span>Single substitution alphabet</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Strengths */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-3">
+                Strengths
+              </h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li className="flex items-start">
+                  <span className="text-green-600 dark:text-green-400 mr-2">✓</span>
+                  <span>Very easy to implement</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-green-600 dark:text-green-400 mr-2">✓</span>
+                  <span>Fast computation</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-green-600 dark:text-green-400 mr-2">✓</span>
+                  <span>Good for learning basics of cryptography</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Weaknesses */}
+            <div>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-3">
+                Weaknesses
+              </h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li className="flex items-start">
+                  <span className="text-red-600 dark:text-red-400 mr-2">✗</span>
+                  <span>Only 26 possible keys (very weak)</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-red-600 dark:text-red-400 mr-2">✗</span>
+                  <span>Vulnerable to brute force attack</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-red-600 dark:text-red-400 mr-2">✗</span>
+                  <span>Easily broken by frequency analysis</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Mathematical Formula */}
+          <div className="mt-6 p-4 bg-indigo-50 dark:bg-gray-700 rounded-lg border-l-4 border-indigo-600">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
+              Mathematical Formula
+            </h3>
+            <div className="space-y-2 font-mono text-sm text-gray-700 dark:text-gray-300">
+              <p><strong>Encryption:</strong> C = (P + K) mod 26</p>
+              <p><strong>Decryption:</strong> P = (C - K) mod 26</p>
+              <p className="text-xs mt-2 font-sans">
+                Where P is plaintext letter position (0-25), K is the shift key, and C is ciphertext letter position.
+              </p>
+            </div>
+          </div>
+
+          {/* Historical Note */}
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border-l-4 border-blue-600">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              <strong className="text-indigo-600 dark:text-indigo-400">Historical Note:</strong> The Caesar cipher is named after Julius Caesar, 
+              who used it in his private correspondence. He used a shift of 3 to communicate with his generals. 
+              The cipher was effective in ancient times because most of Caesar's enemies were illiterate. 
+              While extremely weak by modern standards, it remains an excellent educational tool for understanding basic cryptographic concepts.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

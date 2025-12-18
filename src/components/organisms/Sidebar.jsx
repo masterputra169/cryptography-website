@@ -1,277 +1,374 @@
 // src/components/organisms/Sidebar.jsx
 
-import PropTypes from 'prop-types';
-import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
 import { 
   Home, 
-  BarChart3, 
+  BarChart3,
   Lock, 
   Grid3x3, 
   Shuffle,
-  ChevronLeft,
-  ChevronRight,
-  Moon,
-  Sun,
   Menu,
   X,
-  Settings,
-  HelpCircle
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
-import { Badge } from '../atoms';
 
-/**
- * Sidebar Component - Organism
- * Main navigation sidebar with collapsible menu and dark mode toggle
- */
-const Sidebar = ({ 
-  darkMode = false,
-  toggleDarkMode,
-  isOpen: controlledIsOpen,
-  onToggle,
-  className = '',
-}) => {
-  const [internalIsOpen, setInternalIsOpen] = useState(true);
+const Sidebar = ({ darkMode, toggleDarkMode, onSidebarToggle }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const location = useLocation();
+  const [expandedCategory, setExpandedCategory] = useState(null);
 
-  // Use controlled or internal state
-  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
-  const setIsOpen = onToggle || setInternalIsOpen;
+  // Notify parent when sidebar state changes
+  useEffect(() => {
+    if (onSidebarToggle) {
+      onSidebarToggle(isOpen);
+    }
+  }, [isOpen, onSidebarToggle]);
 
-  // Navigation structure
-  const navigationItems = [
+  const menuItems = [
     {
       category: 'Main',
       items: [
-        { name: 'Home', path: '/', icon: Home, badge: null },
-        { name: 'Dashboard', path: '/dashboard', icon: BarChart3, badge: 'New' },
+        { name: 'Home', path: '/', icon: Home },
+        { name: 'Dashboard', path: '/dashboard', icon: BarChart3 },
       ]
     },
     {
       category: 'Substitution Ciphers',
-      icon: Lock,
       items: [
-        { name: 'Caesar', path: '/caesar', description: 'Shift cipher' },
-        { name: 'Vigenère', path: '/vigenere', description: 'Polyalphabetic' },
-        { name: 'Beaufort', path: '/beaufort', description: 'Reversed Vigenère' },
-        { name: 'Autokey', path: '/autokey', description: 'Self-extending key' },
+        { name: 'Caesar Cipher', path: '/caesar', icon: Lock },
+        { name: 'Vigenère Cipher', path: '/vigenere', icon: Lock },
+        { name: 'Beaufort Cipher', path: '/beaufort', icon: Lock },
+        { name: 'Autokey Cipher', path: '/autokey', icon: Lock },
       ]
     },
     {
       category: 'Polygram Ciphers',
-      icon: Grid3x3,
       items: [
-        { name: 'Playfair', path: '/playfair', description: '5×5 grid' },
-        { name: 'Hill', path: '/hill', description: 'Matrix cipher' },
+        { name: 'Playfair Cipher', path: '/playfair', icon: Grid3x3 },
+        { name: 'Hill Cipher', path: '/hill', icon: Grid3x3 },
       ]
     },
     {
       category: 'Transposition Ciphers',
-      icon: Shuffle,
       items: [
-        { name: 'Rail Fence', path: '/railfence', description: 'Zigzag pattern' },
-        { name: 'Columnar', path: '/columnar', description: 'Column rearrangement' },
-        { name: 'Myszkowski', path: '/myszkowski', description: 'Grouped columns' },
-        { name: 'Double', path: '/double', description: 'Two-pass transposition' },
+        { name: 'Rail Fence', path: '/railfence', icon: Shuffle },
+        { name: 'Columnar', path: '/columnar', icon: Shuffle },
+        { name: 'Myszkowski', path: '/myszkowski', icon: Shuffle },
+        { name: 'Double Transposition', path: '/double', icon: Shuffle },
       ]
     }
   ];
 
-  // Nav link component
-  const NavLink = ({ item, indent = false }) => {
-    const isActive = location.pathname === item.path;
-    const Icon = item.icon;
-
-    return (
-      <Link
-        to={item.path}
-        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
-          indent ? 'ml-4' : ''
-        } ${
-          isActive
-            ? 'bg-primary-600 text-white shadow-lg scale-105'
-            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-        }`}
-        onClick={() => setIsMobileOpen(false)}
-      >
-        {Icon && (
-          <Icon 
-            size={20} 
-            className={isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}
-          />
-        )}
-        {isOpen && (
-          <div className="flex-1 min-w-0">
-            <span className="text-sm font-medium block truncate">{item.name}</span>
-            {item.description && (
-              <span className="text-xs opacity-75 block truncate">
-                {item.description}
-              </span>
-            )}
-          </div>
-        )}
-        {isOpen && item.badge && (
-          <Badge variant="success" size="sm">
-            {item.badge}
-          </Badge>
-        )}
-      </Link>
-    );
+  const toggleCategory = (category) => {
+    setExpandedCategory(expandedCategory === category ? null : category);
   };
 
-  // Sidebar content
+  const handleToggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
   const sidebarContent = (
     <>
       {/* Header */}
-      <div className="p-4 border-b border-gray-700">
-        <div className="flex items-center justify-between">
-          {isOpen && (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
-                <Lock size={18} className="text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-white">
-                  Crypto Suite
-                </h1>
-                <p className="text-xs text-gray-400">v1.0.0</p>
-              </div>
-            </div>
-          )}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="p-2 hover:bg-gray-700 rounded-lg transition-colors hidden lg:block"
-            aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-          >
-            {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-          </button>
-          <button
-            onClick={() => setIsMobileOpen(false)}
-            className="p-2 hover:bg-gray-700 rounded-lg transition-colors lg:hidden"
-            aria-label="Close menu"
-          >
-            <X size={20} />
-          </button>
-        </div>
+      <div className={`p-4 border-b border-gray-700/50 flex-shrink-0 transition-all duration-700 ease-in-out ${
+        isOpen ? 'pb-4' : 'pb-3'
+      }`}>
+        {isOpen ? (
+          // Layout saat sidebar terbuka - fade in smooth
+          <div className="flex items-center justify-between gap-2 animate-fade-in-smooth">
+            <h2 className="text-xl font-bold text-white transform transition-all duration-700 ease-out">
+              Crypto Suite
+            </h2>
+            <button
+              onClick={handleToggleSidebar}
+              className="group p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-500 ease-out hidden lg:block relative overflow-hidden flex-shrink-0"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/20 to-blue-600/0 scale-0 group-hover:scale-100 transition-transform duration-500 ease-out rounded-lg" />
+              <Menu 
+                size={20} 
+                className="text-gray-300 group-hover:text-white relative z-10 transition-all duration-700 ease-in-out rotate-180 group-hover:rotate-[540deg]"
+              />
+            </button>
+            <button
+              onClick={() => setIsMobileOpen(false)}
+              className="group p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-500 ease-out lg:hidden relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/20 to-red-600/0 scale-0 group-hover:scale-100 transition-transform duration-500 ease-out rounded-lg" />
+              <X size={20} className="text-gray-300 group-hover:text-white group-hover:rotate-90 relative z-10 transition-all duration-500 ease-out" />
+            </button>
+          </div>
+        ) : (
+          // Layout saat sidebar collapsed - vertikal center dengan fade
+          <div className="flex flex-col items-center gap-3 animate-fade-in-smooth">
+            <h2 className="text-xl font-bold text-white transform transition-all duration-700 ease-out">
+              CS
+            </h2>
+            <button
+              onClick={handleToggleSidebar}
+              className="group p-2 hover:bg-gray-700/50 rounded-lg transition-all duration-500 ease-out hidden lg:block relative overflow-hidden flex-shrink-0"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/20 to-blue-600/0 scale-0 group-hover:scale-100 transition-transform duration-500 ease-out rounded-lg" />
+              <Menu 
+                size={20} 
+                className="text-gray-300 group-hover:text-white relative z-10 transition-all duration-700 ease-in-out group-hover:rotate-[360deg]"
+              />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 overflow-y-auto scrollbar-thin">
-        <div className="space-y-6">
-          {navigationItems.map((section, idx) => (
-            <div key={idx}>
-              {isOpen && (
-                <h3 className="flex items-center gap-2 px-3 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  {section.icon && <section.icon size={14} />}
-                  {section.category}
-                </h3>
+      <nav className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+        {menuItems.map((section, sectionIdx) => (
+          <div key={sectionIdx} className="mb-6">
+            {/* Category Header */}
+            <button
+              onClick={() => toggleCategory(section.category)}
+              className="w-full flex items-center justify-between text-gray-400 text-xs uppercase tracking-wider mb-2 hover:text-white transition-all duration-500 ease-out px-1 group/header"
+            >
+              {isOpen ? (
+                <>
+                  <span className="transition-all duration-500 ease-out group-hover/header:translate-x-1">
+                    {section.category}
+                  </span>
+                  <span className="transition-all duration-500 ease-out">
+                    {expandedCategory === section.category ? 
+                      <ChevronDown size={16} className="transition-all duration-500 ease-out group-hover/header:translate-y-0.5" /> : 
+                      <ChevronRight size={16} className="transition-all duration-500 ease-out group-hover/header:translate-x-0.5" />
+                    }
+                  </span>
+                </>
+              ) : (
+                <span className="mx-auto transition-all duration-500 ease-out">···</span>
               )}
-              {!isOpen && section.icon && (
-                <div className="flex justify-center mb-2">
-                  <section.icon size={20} className="text-gray-400" />
-                </div>
-              )}
+            </button>
+
+            {/* Menu Items with stagger animation */}
+            {(expandedCategory === section.category || !isOpen) && (
               <div className="space-y-1">
                 {section.items.map((item, itemIdx) => (
-                  <NavLink key={itemIdx} item={item} indent={!!section.icon} />
+                  <NavLink
+                    key={itemIdx}
+                    to={item.path}
+                    onClick={() => setIsMobileOpen(false)}
+                    style={{
+                      animationDelay: `${itemIdx * 50}ms`
+                    }}
+                  >
+                    {({ isActive }) => (
+                      <div className={`
+                        group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-500 ease-out relative overflow-hidden animate-slide-in-item
+                        ${isActive 
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-[1.02]' 
+                          : 'text-gray-300 hover:bg-gray-700/50 hover:text-white hover:translate-x-1'
+                        }
+                        ${!isOpen ? 'justify-center' : ''}
+                      `}>
+                        {/* Animated background gradient on hover - smooth wave */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/20 to-blue-600/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                        
+                        {/* Icon with smooth bounce on hover */}
+                        <item.icon 
+                          size={20} 
+                          className="relative z-10 transition-all duration-500 ease-out group-hover:scale-110 flex-shrink-0" 
+                        />
+                        
+                        {/* Text with smooth fade and slide */}
+                        {isOpen && (
+                          <span className="text-sm font-medium relative z-10 transition-all duration-500 ease-out">
+                            {item.name}
+                          </span>
+                        )}
+
+                        {/* Active indicator - smooth pulse */}
+                        {isActive && (
+                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-l-full animate-pulse-smooth" />
+                        )}
+                      </div>
+                    )}
+                  </NavLink>
                 ))}
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        ))}
       </nav>
 
-      {/* Footer Actions */}
-      <div className="p-4 border-t border-gray-700 space-y-2">
-        {/* Dark Mode Toggle */}
-        <button
-          onClick={toggleDarkMode}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
-        >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          {isOpen && (
-            <span className="text-sm font-medium">
-              {darkMode ? 'Light Mode' : 'Dark Mode'}
-            </span>
-          )}
-        </button>
-
-        {/* Settings */}
-        {isOpen && (
-          <>
-            <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white">
-              <Settings size={20} />
-              <span className="text-sm font-medium">Settings</span>
-            </button>
-
-            <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white">
-              <HelpCircle size={20} />
-              <span className="text-sm font-medium">Help</span>
-            </button>
-          </>
-        )}
-      </div>
+      {/* Custom Scrollbar Styles */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(55, 65, 81, 0.3);
+          border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(107, 114, 128, 0.5);
+          border-radius: 10px;
+          transition: background 0.5s ease;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(107, 114, 128, 0.8);
+        }
+      `}</style>
     </>
   );
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - smooth entrance */}
       <button
         onClick={() => setIsMobileOpen(true)}
-        className="fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-lg lg:hidden shadow-lg"
-        aria-label="Open menu"
+        className="group fixed top-4 left-4 z-50 p-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg lg:hidden transition-all duration-500 ease-out shadow-lg hover:shadow-2xl hover:scale-110 relative overflow-hidden"
       >
-        <Menu size={24} />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/20 to-blue-600/0 scale-0 group-hover:scale-100 transition-transform duration-500 ease-out rounded-lg" />
+        <Menu size={24} className="relative z-10 group-hover:rotate-180 transition-transform duration-700 ease-in-out" />
       </button>
 
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar - ultra smooth width transition */}
       <aside
         className={`${
           isOpen ? 'w-64' : 'w-20'
-        } hidden lg:flex flex-col bg-gray-800 text-white transition-all duration-300 flex-shrink-0 ${className}`}
+        } fixed top-0 left-0 h-screen hidden lg:flex flex-col bg-gray-800 text-white transition-all duration-700 ease-in-out flex-shrink-0 z-30 shadow-2xl border-r border-gray-700/50`}
+        style={{
+          backfaceVisibility: 'hidden',
+          transform: 'translateZ(0)',
+          willChange: 'width',
+        }}
       >
         {sidebarContent}
       </aside>
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar - smooth slide with backdrop */}
       {isMobileOpen && (
         <>
-          {/* Overlay */}
+          {/* Overlay with smooth fade */}
           <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-fade-in-backdrop backdrop-blur-sm"
             onClick={() => setIsMobileOpen(false)}
           />
           
-          {/* Sidebar */}
-          <aside className="fixed inset-y-0 left-0 w-64 flex flex-col bg-gray-800 text-white z-50 lg:hidden shadow-2xl">
+          {/* Sidebar with smooth slide */}
+          <aside className="fixed inset-y-0 left-0 w-64 flex flex-col bg-gray-800 text-white z-50 lg:hidden shadow-2xl animate-slide-in-mobile border-r border-gray-700/50">
             {sidebarContent}
           </aside>
         </>
       )}
+
+      {/* Enhanced Global Animations */}
+      <style>{`
+        /* Prevent white flash during transitions */
+        body {
+          background-color: #1f2937;
+          margin: 0;
+          padding: 0;
+        }
+        
+        #root {
+          background-color: #1f2937;
+          min-height: 100vh;
+        }
+
+        /* Ultra Smooth Fade In */
+        @keyframes fade-in-smooth {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .animate-fade-in-smooth {
+          animation: fade-in-smooth 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Smooth Slide In for Items with Stagger */
+        @keyframes slide-in-item {
+          from {
+            opacity: 0;
+            transform: translateX(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .animate-slide-in-item {
+          animation: slide-in-item 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* Smooth Pulse */
+        @keyframes pulse-smooth {
+          0%, 100% {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: translateY(-50%) scale(1.05);
+          }
+        }
+
+        .animate-pulse-smooth {
+          animation: pulse-smooth 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Backdrop Fade In */
+        @keyframes fade-in-backdrop {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        .animate-fade-in-backdrop {
+          animation: fade-in-backdrop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Mobile Slide In - Smooth Bounce */
+        @keyframes slide-in-mobile {
+          from {
+            transform: translateX(-100%);
+          }
+          to {
+            transform: translateX(0);
+          }
+        }
+
+        .animate-slide-in-mobile {
+          animation: slide-in-mobile 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Force GPU acceleration for ultra smooth transitions */
+        aside, button, a {
+          -webkit-transform: translateZ(0);
+          -moz-transform: translateZ(0);
+          -ms-transform: translateZ(0);
+          -o-transform: translateZ(0);
+          transform: translateZ(0);
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Smooth scrolling */
+        * {
+          scroll-behavior: smooth;
+        }
+      `}</style>
     </>
   );
-};
-
-// PropTypes
-Sidebar.propTypes = {
-  darkMode: PropTypes.bool,
-  toggleDarkMode: PropTypes.func,
-  isOpen: PropTypes.bool,
-  onToggle: PropTypes.func,
-  className: PropTypes.string,
-};
-
-NavLink.propTypes = {
-  item: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    path: PropTypes.string.isRequired,
-    icon: PropTypes.elementType,
-    description: PropTypes.string,
-    badge: PropTypes.string,
-  }).isRequired,
-  indent: PropTypes.bool,
 };
 
 export default Sidebar;

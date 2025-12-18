@@ -2,7 +2,7 @@
 
 /**
  * Double Transposition Cipher
- * Melakukan transposisi kolom dua kali untuk keamanan ganda
+ * Melakukan transposisi kolum dua kali untuk keamanan ganda
  */
 
 import { columnarEncrypt, columnarDecrypt } from './columnarTransposition.js';

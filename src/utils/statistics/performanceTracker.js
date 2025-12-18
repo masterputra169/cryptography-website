@@ -1,168 +1,190 @@
 // src/utils/statistics/performanceTracker.js
 
 /**
- * Performance Tracker untuk mengukur kinerja algoritma kriptografi
+ * Performance Tracker
+ * Melacak waktu eksekusi, memory usage, dan metrics lainnya
  */
 
-export class PerformanceTracker {
+class PerformanceTracker {
   constructor() {
     this.metrics = [];
-    this.startTime = null;
-    this.endTime = null;
+    this.currentOperation = null;
   }
 
-  // Mulai tracking
-  start() {
-    this.startTime = performance.now();
-    this.memoryStart = performance.memory ? performance.memory.usedJSHeapSize : 0;
+  /**
+   * Mulai tracking operation
+   */
+  start(operationName, metadata = {}) {
+    this.currentOperation = {
+      name: operationName,
+      metadata,
+      startTime: performance.now(),
+      startMemory: this.getMemoryUsage(),
+      timestamp: new Date().toISOString()
+    };
   }
 
-  // Stop tracking dan hitung metrics
-  stop(algorithmName, inputSize, outputSize) {
-    this.endTime = performance.now();
-    this.memoryEnd = performance.memory ? performance.memory.usedJSHeapSize : 0;
+  /**
+   * Stop tracking dan simpan metrics
+   */
+  stop(additionalData = {}) {
+    if (!this.currentOperation) {
+      console.warn('No operation currently being tracked');
+      return null;
+    }
 
-    const executionTime = this.endTime - this.startTime;
-    const memoryUsed = this.memoryEnd - this.memoryStart;
+    const endTime = performance.now();
+    const endMemory = this.getMemoryUsage();
 
     const metric = {
-      algorithm: algorithmName,
-      timestamp: new Date().toISOString(),
-      executionTime: executionTime.toFixed(2), // milliseconds
-      inputSize,
-      outputSize,
-      throughput: (inputSize / (executionTime / 1000)).toFixed(2), // chars/second
-      memoryUsed: memoryUsed > 0 ? (memoryUsed / 1024).toFixed(2) : 'N/A', // KB
-      efficiency: this.calculateEfficiency(executionTime, inputSize),
+      ...this.currentOperation,
+      endTime,
+      endMemory,
+      duration: endTime - this.currentOperation.startTime,
+      memoryDelta: endMemory - this.currentOperation.startMemory,
+      ...additionalData
     };
 
     this.metrics.push(metric);
-    this.saveToStorage(metric);
+    this.currentOperation = null;
 
     return metric;
   }
 
-  // Calculate efficiency score (0-100)
-  calculateEfficiency(executionTime, inputSize) {
-    // Lower time + higher input = better efficiency
-    const baseScore = 100;
-    const timePenalty = Math.min(executionTime / 10, 50); // Max 50 point penalty
-    const sizeFactor = Math.log10(Math.max(inputSize, 1)) * 5; // Bonus for larger inputs
-    
-    const efficiency = Math.max(0, Math.min(100, baseScore - timePenalty + sizeFactor));
-    return efficiency.toFixed(2);
+  /**
+   * Get memory usage (if available)
+   */
+  getMemoryUsage() {
+    if (performance.memory) {
+      return {
+        usedJSHeapSize: performance.memory.usedJSHeapSize,
+        totalJSHeapSize: performance.memory.totalJSHeapSize,
+        jsHeapSizeLimit: performance.memory.jsHeapSizeLimit
+      };
+    }
+    return null;
   }
 
-  // Get statistics summary
-  getStatistics() {
-    if (this.metrics.length === 0) return null;
+  /**
+   * Get all metrics
+   */
+  getMetrics() {
+    return [...this.metrics];
+  }
 
-    const totalExecutionTime = this.metrics.reduce((sum, m) => sum + parseFloat(m.executionTime), 0);
-    const avgExecutionTime = totalExecutionTime / this.metrics.length;
-    const totalOperations = this.metrics.length;
+  /**
+   * Get metrics by operation name
+   */
+  getMetricsByName(operationName) {
+    return this.metrics.filter(m => m.name === operationName);
+  }
+
+  /**
+   * Get average duration for operation
+   */
+  getAverageDuration(operationName) {
+    const operations = this.getMetricsByName(operationName);
+    if (operations.length === 0) return 0;
+
+    const totalDuration = operations.reduce((sum, op) => sum + op.duration, 0);
+    return totalDuration / operations.length;
+  }
+
+  /**
+   * Get statistics summary
+   */
+  getSummary(operationName = null) {
+    const operations = operationName 
+      ? this.getMetricsByName(operationName)
+      : this.metrics;
+
+    if (operations.length === 0) {
+      return {
+        count: 0,
+        avgDuration: 0,
+        minDuration: 0,
+        maxDuration: 0,
+        totalDuration: 0
+      };
+    }
+
+    const durations = operations.map(op => op.duration);
+    const totalDuration = durations.reduce((sum, d) => sum + d, 0);
 
     return {
-      totalOperations,
-      avgExecutionTime: avgExecutionTime.toFixed(2),
-      totalTime: totalExecutionTime.toFixed(2),
-      fastestOperation: Math.min(...this.metrics.map(m => parseFloat(m.executionTime))).toFixed(2),
-      slowestOperation: Math.max(...this.metrics.map(m => parseFloat(m.executionTime))).toFixed(2),
-      recentMetrics: this.metrics.slice(-10),
+      count: operations.length,
+      avgDuration: totalDuration / operations.length,
+      minDuration: Math.min(...durations),
+      maxDuration: Math.max(...durations),
+      totalDuration,
+      operations: operations.length
     };
   }
 
-  // Get algorithm comparison
-  getAlgorithmComparison() {
-    const algorithmStats = {};
-
-    this.metrics.forEach(metric => {
-      if (!algorithmStats[metric.algorithm]) {
-        algorithmStats[metric.algorithm] = {
-          count: 0,
-          totalTime: 0,
-          avgTime: 0,
-          totalChars: 0,
-        };
-      }
-
-      const stats = algorithmStats[metric.algorithm];
-      stats.count++;
-      stats.totalTime += parseFloat(metric.executionTime);
-      stats.totalChars += metric.inputSize;
-    });
-
-    // Calculate averages
-    Object.keys(algorithmStats).forEach(algo => {
-      const stats = algorithmStats[algo];
-      stats.avgTime = (stats.totalTime / stats.count).toFixed(2);
-      stats.avgThroughput = (stats.totalChars / (stats.totalTime / 1000)).toFixed(2);
-    });
-
-    return algorithmStats;
-  }
-
-  // Save to localStorage
-  saveToStorage(metric) {
-    try {
-      const stored = localStorage.getItem('cryptoMetrics') || '[]';
-      const metrics = JSON.parse(stored);
-      metrics.push(metric);
-      
-      // Keep only last 100 metrics
-      const recentMetrics = metrics.slice(-100);
-      localStorage.setItem('cryptoMetrics', JSON.stringify(recentMetrics));
-    } catch (error) {
-      console.warn('Failed to save metrics to storage:', error);
-    }
-  }
-
-  // Load from localStorage
-  static loadFromStorage() {
-    try {
-      const stored = localStorage.getItem('cryptoMetrics') || '[]';
-      return JSON.parse(stored);
-    } catch (error) {
-      console.warn('Failed to load metrics from storage:', error);
-      return [];
-    }
-  }
-
-  // Clear all metrics
+  /**
+   * Clear all metrics
+   */
   clear() {
     this.metrics = [];
-    localStorage.removeItem('cryptoMetrics');
+    this.currentOperation = null;
   }
 
-  // Export metrics as JSON
+  /**
+   * Export metrics as JSON
+   */
   exportJSON() {
     return JSON.stringify(this.metrics, null, 2);
   }
 
-  // Export metrics as CSV
+  /**
+   * Export metrics as CSV
+   */
   exportCSV() {
-    const headers = ['Algorithm', 'Timestamp', 'Execution Time (ms)', 'Input Size', 'Output Size', 'Throughput (chars/s)', 'Memory Used (KB)', 'Efficiency'];
+    if (this.metrics.length === 0) return '';
+
+    const headers = ['timestamp', 'name', 'duration', 'startMemory', 'endMemory', 'memoryDelta'];
     const rows = this.metrics.map(m => [
-      m.algorithm,
       m.timestamp,
-      m.executionTime,
-      m.inputSize,
-      m.outputSize,
-      m.throughput,
-      m.memoryUsed,
-      m.efficiency,
+      m.name,
+      m.duration.toFixed(2),
+      m.startMemory ? m.startMemory.usedJSHeapSize : 'N/A',
+      m.endMemory ? m.endMemory.usedJSHeapSize : 'N/A',
+      m.memoryDelta ? m.memoryDelta.usedJSHeapSize : 'N/A'
     ]);
 
-    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
-    return csv;
+    return [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+  }
+
+  /**
+   * Get performance score (0-100)
+   */
+  getPerformanceScore(operationName) {
+    const summary = this.getSummary(operationName);
+    if (summary.count === 0) return 0;
+
+    // Score based on average duration
+    // < 10ms = 100, 10-50ms = 80, 50-100ms = 60, 100-500ms = 40, > 500ms = 20
+    const avgDuration = summary.avgDuration;
+    
+    if (avgDuration < 10) return 100;
+    if (avgDuration < 50) return 80;
+    if (avgDuration < 100) return 60;
+    if (avgDuration < 500) return 40;
+    return 20;
   }
 }
 
-// Singleton instance
-let trackerInstance = null;
+// Create singleton instance (but don't export as default)
+const performanceTrackerInstance = new PerformanceTracker();
 
-export const getPerformanceTracker = () => {
-  if (!trackerInstance) {
-    trackerInstance = new PerformanceTracker();
-  }
-  return trackerInstance;
-};
+// Export only named functions (NO DEFAULT EXPORT)
+export const startTracking = (name, metadata) => performanceTrackerInstance.start(name, metadata);
+export const stopTracking = (data) => performanceTrackerInstance.stop(data);
+export const getMetrics = () => performanceTrackerInstance.getMetrics();
+export const getSummary = (name) => performanceTrackerInstance.getSummary(name);
+export const clearMetrics = () => performanceTrackerInstance.clear();
+export const exportMetricsJSON = () => performanceTrackerInstance.exportJSON();
+export const exportMetricsCSV = () => performanceTrackerInstance.exportCSV();
