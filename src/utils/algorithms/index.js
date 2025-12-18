@@ -68,22 +68,22 @@ export {
 // ============= MODULE C: TRANSPOSITION CIPHERS =============
 
 // Rail Fence Cipher
-/*export {
+export {
   railFenceEncrypt,
   railFenceDecrypt,
   getRailFenceVisualization,
   generateRailPattern,
   analyzeRailFence
-} from './transposition/railFenceCipher.js';*/
+} from './transposition/railFenceCipher.js';
 
 // Columnar Transposition
-/*export {
+export {
   columnarEncrypt,
   columnarDecrypt,
   getColumnarVisualization,
   generateColumnarGrid,
   analyzeColumnarKey
-} from './transposition/columnarTransposition.js';*/
+} from './transposition/columnarTransposition.js';
 
 // Myszkowski Transposition
 /*export {
@@ -95,13 +95,13 @@ export {
 } from './transposition/myszkowskiTransposition.js';*/
 
 // Double Transposition
-/*export {
+export {
   doubleTranspositionEncrypt,
   doubleTranspositionDecrypt,
   getDoubleTranspositionVisualization,
   generateDoubleGrid,
   analyzeDoubleTransposition
-} from './transposition/doubleTransposition.js';*/
+} from './transposition/doubleTransposition.js';
 
 // ============= UTILITIES =============
 
