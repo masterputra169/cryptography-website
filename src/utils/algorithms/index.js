@@ -86,13 +86,17 @@ export {
 } from './transposition/columnarTransposition.js';
 
 // Myszkowski Transposition
-/*export {
+export {
   myszkowskiEncrypt,
   myszkowskiDecrypt,
   getMyszkowskiVisualization,
   generateMyszkowskiGrid,
-  analyzeMyszkowski
-} from './transposition/myszkowskiTransposition.js';*/
+  analyzeMyszkowski,
+  compareWithColumnar,
+  validateMyszkowskiParams,
+  getRepeatedLetterPositions,
+  calculateEfficiency as calculateMyszkowskiEfficiency
+} from './transposition/myszkowskiTransposition.js';
 
 // Double Transposition
 export {

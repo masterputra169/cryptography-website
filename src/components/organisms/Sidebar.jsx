@@ -58,6 +58,35 @@ const Sidebar = ({ darkMode, toggleDarkMode, onSidebarToggle }) => {
         { name: 'Myszkowski', path: '/myszkowski', icon: Shuffle },
         { name: 'Double Transposition', path: '/double', icon: Shuffle },
       ]
+    },
+    {
+      category: 'Advanced Classic',
+      items: [
+        { name: 'Super Encryption', path: '/super-encryption', icon: Lock },
+        { name: 'One Time Pad', path: '/otp', icon: Lock },
+      ]
+    },
+    {
+      category: 'Stream Cipher',
+      items: [
+        { name: 'LCG Stream', path: '/lcg', icon: Shuffle },
+        { name: 'BBS Stream', path: '/bbs', icon: Shuffle },
+        { name: 'Generic Stream', path: '/stream', icon: Shuffle },
+      ]
+    },
+    {
+      category: 'Modern Block Cipher',
+      items: [
+        { name: 'DES Algorithm', path: '/des', icon: Grid3x3 },
+        { name: 'DES ECB Mode', path: '/des-ecb', icon: Grid3x3 },
+        { name: 'DES CBC Mode', path: '/des-cbc', icon: Grid3x3 },
+      ]
+    },
+    {
+      category: 'Modern Asymmetric',
+      items: [
+        { name: 'RSA Encryption', path: '/rsa', icon: Lock },
+      ]
     }
   ];
 
