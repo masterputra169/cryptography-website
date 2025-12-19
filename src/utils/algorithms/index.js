@@ -107,6 +107,34 @@ export {
   analyzeDoubleTransposition
 } from './transposition/doubleTransposition.js';
 
+// ============= MODULE D: ADVANCED CIPHERS =============
+
+// Super Encryption (Product Cipher)
+export {
+  superEncrypt,
+  superDecrypt,
+  getSuperEncryptionVisualization,
+  analyzeSuperEncryption,
+  validateSuperEncryptionParams,
+  compareWithSingleCipher
+} from './advanced/superEncryption.js';
+
+
+// One-Time Pad (Perfect Secrecy)
+export {
+  otpEncrypt,
+  otpDecrypt,
+  getOTPVisualization,
+  analyzeOTP,
+  validateOTPParams,
+  generateRandomKey,
+  generateRandomKeyHex,
+  generateRandomKeyBinary,
+  checkKeyReuse,
+  textToHex,
+  textToBinary
+} from './advanced/oneTimePad.js';
+
 // ============= UTILITIES =============
 
 /**

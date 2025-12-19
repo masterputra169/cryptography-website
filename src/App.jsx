@@ -15,6 +15,8 @@ import RailFencePage from './pages/transposition/RailFencePage';
 import ColumnarPage from './pages/transposition/ColumnarPage';
 import MyszkowskiPage from './pages/transposition/MyszkowskiPage';
 import DoublePage from './pages/transposition/DoublePage';
+import SuperEncryptionPage from './pages/advanced/SuperEncryptionPage';
+import OTPPage from './pages/advanced/OTPPage';
 
 // 404 Page Component
 const NotFound = () => {
@@ -98,6 +100,10 @@ const App = () => {
             <Route path="/columnar" element={<ColumnarPage />} />
             <Route path="/myszkowski" element={<MyszkowskiPage />} />
             <Route path="/double" element={<DoublePage />} />
+            
+            {/* Advanced Ciphers */}
+            <Route path="/super-encryption" element={<SuperEncryptionPage />} />
+            <Route path="/otp" element={<OTPPage />} />
             
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
