@@ -135,6 +135,21 @@ export {
   textToBinary
 } from './advanced/oneTimePad.js';
 
+
+// ============= MODULE E: STREAM CIPHERS =============
+
+// Linear Congruential Generator (LCG)
+export {
+  lcgEncrypt,
+  lcgDecrypt,
+  getLCGVisualization,
+  analyzeLCGParameters,
+  generateRandomSeed,
+  textToHex as lcgTextToHex,
+  hexToText,
+  LCG_PRESETS
+} from './stream/lcg.js';
+
 // ============= UTILITIES =============
 
 /**

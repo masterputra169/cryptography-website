@@ -17,6 +17,8 @@ import MyszkowskiPage from './pages/transposition/MyszkowskiPage';
 import DoublePage from './pages/transposition/DoublePage';
 import SuperEncryptionPage from './pages/advanced/SuperEncryptionPage';
 import OTPPage from './pages/advanced/OTPPage';
+import LCGPage from './pages/stream/LCGPage';
+
 
 // 404 Page Component
 const NotFound = () => {
@@ -104,6 +106,9 @@ const App = () => {
             {/* Advanced Ciphers */}
             <Route path="/super-encryption" element={<SuperEncryptionPage />} />
             <Route path="/otp" element={<OTPPage />} />
+            
+            {/* Stream Ciphers */}
+            <Route path="/lcg" element={<LCGPage />} />
             
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
